@@ -44,7 +44,7 @@ Reformat the data from each of your imported spreadsheets to have common columns
 #### Data Frame #1: Fall 2018 data
 
 ```{r}
-
+#No changes to column names
 ```
 
 #### Data Frame #2: Winter 2019
