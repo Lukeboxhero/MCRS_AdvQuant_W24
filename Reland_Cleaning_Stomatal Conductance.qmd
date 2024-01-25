@@ -67,17 +67,13 @@ StomCon_Combined <- bind_rows(StomCon_Fall, StomCon_Winter_Clean)
 
 Go through your raw data frame column by column to find and correct issues.
 
-#### Issue #1:
+#### Issue #1: Calculate mean measurements
 
 ```{r}
 
 ```
 
 #### Issue #2:
-
-```{r}
-
-```
 
 etc.
 
