@@ -69,14 +69,14 @@ Go through your raw data frame column by column to find and correct issues.
 #### Issue #1: Get rid of the first row
 
 ```{r}
-StomCon_Combined <- StomCon_Combined|>
+StomCon_Combined_1 <- StomCon_Combined|>
   filter(Block != '43103.0')
 ```
 
 #### Issue #2: Select columns
 
 ```{r}
-StomCon_Combined <- StomCon_Combined|>
+StomCon_Combined_2 <- StomCon_Combined_1|>
   select(-Observers, -Notes)
 ```
 
@@ -85,23 +85,34 @@ etc.
 #### Issue #3: Change Non-Native to NonNative
 
 ```{r}
-StomCon_Combined <- StomCon_Combined|>
+StomCon_Combined_3 <- StomCon_Combined_2|>
   mutate(Treatment = case_when(
    Treatment == "Non-Native" ~ "NonNative",
    is.character(Treatment) == TRUE ~ Treatment
  ))
+View(StomCon_Combined)
 ```
 
-#### Issue #4: Change Date
+#### Issue #4: Change Date and Get rid of NA data
 
 ```{r}
+StomCon_Combined_4 <- StomCon_Combined_3 |>
+  mutate(Date = as.Date(as.numeric(Date), origin = "1900-01-01")) |>
+  na.omit() |>
+  filter(`Meas. 1` != "-", `Meas. 2` != "-", `Meas. 3` != "-")
 
+#View(StomCon_Combined_4)
 ```
 
-#### Issue #5: Get rid of NA data
+#### Issue #5: Column names
 
 ```{r}
+StomCon_Clean <- StomCon_Combined_4 |>
+  rename(Species = "Plant Species" ) |>
+  rename(Tag_Num = "Tag Number")|>
+  rename(StomCon1 = "Meas. 1" , StomCon2 = "Meas. 2" , StomCon3 = "Meas. 3")
 
+  
 ```
 
 ### Save your cleaned and complete Primary data frame to .csv and .Rdata and save the file as VARIABLE_Primary.csv or similar.
