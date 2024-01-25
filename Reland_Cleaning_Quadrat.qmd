@@ -120,6 +120,12 @@ Quad_Combined_Clean<-Quad_Combined_Clean %>% mutate(Block = as.integer(Block), C
 ```{r}
 Quad_Combined_Clean[Quad_Combined_Clean=="N"] <- "Native"
 Quad_Combined_Clean[Quad_Combined_Clean=="NN"] <- "NonNative"
+Quad_Combined_Clean$Species_Code[Quad_Combined_Clean$Species_Code == "HEDHEL (eng ivy)"] <- "HEDHEL"
+Quad_Combined_Clean$Species_Code[Quad_Combined_Clean$Species_Code == "UK(01)"] <- "UNK1"
+Quad_Combined_Clean$Species_Code[Quad_Combined_Clean$Species_Code == "UK(02)"] <- "UNK2"
+Quad_Combined_Clean$Species_Code[Quad_Combined_Clean$Species_Code == "UK(03)"] <- "UNK3"
+Quad_Combined_Clean$Species_Code[Quad_Combined_Clean$Species_Code == "UK(04)"] <- "UNK4"
+
 ```
 
 #### Issue #5: Remove duplicate rows
@@ -128,7 +134,7 @@ Quad_Combined_Clean[Quad_Combined_Clean=="NN"] <- "NonNative"
 Quad_Combined_Clean<-Quad_Combined_Clean[-c(1,85),]
 ```
 
-#### Issue #6:  Remove NA values
+#### Issue #6: Remove NA values
 
 ```{r}
 Quad_Combined_Clean<- Quad_Combined_Clean %>% filter(Treatment == "Native" | Treatment== "NonNative" & Block >=1 & Quad >=1)
@@ -152,7 +158,7 @@ Quad_Combined_Clean<- Quad_Combined_Clean %>%
    mutate(Block = if_else(is.na (Block) & Quad == "10", 1, Block))
 ```
 
-#### Issue# 9: Replace NA with Values in Quad 
+#### Issue# 9: Replace NA with Values in Quad
 
 ```{r}
 Quad_Combined_Clean<- Quad_Combined_Clean[-c(75),]
