@@ -135,7 +135,7 @@ Quad_Combined_Issue_3$Treatment[Quad_Combined_Issue_3$Treatment =="N"]<-"Native"
 
 ```
 
-#### Issue #4: 
+#### Issue #4:
 
 ```{r}
 
