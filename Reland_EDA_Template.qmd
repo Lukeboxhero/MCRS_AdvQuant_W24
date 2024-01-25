@@ -10,7 +10,7 @@ Winter 2024 - MCRS Advanced Quantitative Methods Class Project
 
 Team #:
 
-Team Members:
+Team Members: Izzy Funes
 
 #### Load Packages
 

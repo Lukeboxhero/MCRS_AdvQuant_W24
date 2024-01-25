@@ -51,6 +51,7 @@ glimpse(Freshies)
 You might instead have no abundance information at all, but have information about multiple samples. These data give vascular plant species names for samples from 10 sites from a survey in Shropshire, UK.
 
 ```{r}
+load(file = "S4e2e-4.Rdata")
 plrich
 
 glimpse(plrich)
@@ -82,7 +83,7 @@ If our data comes in tidy, like it was in "plrich", we can convert it to a matri
 plrich_wide <- plrich |> 
   mutate(Present = 1) |> 
   pivot_wider(names_from = Site, values_from = Present, values_fill = 0)
-
+     #takes columns and turns them into rows which shortens the number of rows (makes into dataframe format)
 plrich_wide
 
 ```
@@ -102,7 +103,7 @@ To do it backwards:
 
 ```{r}
 ps_long <- ps |> data.frame()
-
+#convert back to dataframe
 colnames(ps_long) <- c("Species", "Site", "Present")
 
 ps_long
@@ -120,6 +121,7 @@ Species richness barely needs a special function - its just a matter of using a 
 
 ```{r}
 Freshies |> nrow()
+#gives you a row count
 ```
 
 ```{r}
@@ -141,6 +143,7 @@ psa |>
 
 psa |> 
   mutate_all(~ case_when(. > 0 ~ 1, . == 0 ~ 0)) |> 
+  #code above changes data to presence/absence(only 0s and 1s)
   colSums()
 ```
 
@@ -156,6 +159,8 @@ Simpson's D is a diversity index that ranges from 0 to 1. The function to calcul
 
 ```{r}
 # the 
+library(tidyverse)
+library(vegan)
 inv_d <- diversity(Freshies$Count, index = "simpson")
 
 inv_d
@@ -168,6 +173,7 @@ How do we interpret this? It's functionally not too useful unless we're comparin
 Shannon diversity varies from 0 with no upper limit. higher = higher diversity. In a highly diverse (and evenly distributed) system, an unknown individual could belong to any species, leading to a high uncertainty in predictions of its identity. In a less diverse system dominated by one or a few species, it is easier to predict the identity of unknown individuals and there is less uncertainty in the system.
 
 ```{r}
+
 inv_shan <- diversity(Freshies$Count, index = "shannon")
 
 inv_shan
@@ -176,8 +182,16 @@ inv_shan
 What if we have many samples that we want to calculate, so we can compare? We can also give it a whole dataset in matrix format and it can figure out what to do. The MARGIN argument tells it whether to compute it with the columns or rows as the grouping factor.
 
 ```{r}
-diversity(psa, index = "shannon", MARGIN = 2)
 
+shan_div <- diversity(psa, index = "shannon", MARGIN = 2)
+simp_div <- diversity(psa, index = "simpson", MARGIN = 2)
+sprich <- ps |> colSums()
+
+vec <- colnames(ps)
+
+bind_cols(vec, shan_div, simp_div, sprich) |>
+  rename(Site = '...1', Shannon = '...2', Simpson = '...3', SpRich = '...4') |>
+  separate(Site, into = c("Null", "site", "UpperLower", "Rep"), sep = "")
 ```
 
 ## Similarity Indices
@@ -321,7 +335,7 @@ Bray-Curtis works for both abundance data and presence/absence data. Bray-Curtis
 vegdist(antfire, method = "bray")
 ```
 
-### Dendrogram Example #2: 
+### Dendrogram Example #2:
 
 What is a more powerful determinant of ant community, soil type or fire regime?
 
