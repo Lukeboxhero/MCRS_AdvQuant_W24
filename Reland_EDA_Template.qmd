@@ -4,7 +4,8 @@ format: html
 editor: visual
 ---
 
-## Relandscaping Exploratory Analysis: Luke
+
+## Relandscaping Exploratory Analysis: Darien & Luke
 
 Winter 2024 - MCRS Advanced Quantitative Methods Class Project
 
