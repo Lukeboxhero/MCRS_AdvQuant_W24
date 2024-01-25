@@ -115,7 +115,7 @@ Quad_Combined_Clean<- Quad_Combined_Clean%>% rename(Species_Code=`Species Code`)
 Quad_Combined_Clean<-Quad_Combined_Clean %>% mutate(Block = as.integer(Block), Count = as.integer(Count), Quad = as.integer(Quad))
 ```
 
-#### **Issue #4: Rename treatment values**
+#### **Issue #4: Rename treatment values and unknown species**
 
 ```{r}
 Quad_Combined_Clean[Quad_Combined_Clean=="N"] <- "Native"
@@ -170,8 +170,7 @@ Quad_Combined_Clean<- Quad_Combined_Clean[-c(75),]
 Quad_Combined_Clean<- Quad_Combined_Clean %>%
   mutate(Turf = if_else(is.na (Turf) & Block == "1","NonTurf" , Turf)) |>
   mutate(Turf = if_else(is.na (Turf) & Block == "3","Turf" , Turf)) |>
-  filter(Turf!="NA")
-
+ mutate(Turf = if_else(is.na (Turf) & Block == "2","Turf" , Turf))
 ```
 
 ### Save your cleaned and complete Primary data frame to .csv and .Rdata and save the file as VARIABLE_Primary.csv or similar.
