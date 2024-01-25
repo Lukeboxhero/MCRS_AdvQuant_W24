@@ -89,6 +89,7 @@ Bind your cleaned data frames together into one object. Clean up any remaining c
 
 ```{r}
 Quad_Combined <- bind_rows(Quad_Winter_19_Clean, Quad_Spring_18_Clean, QuadFall_18_Clean)
+View(Quad_Combined)
 ```
 
 ### Cleaning
