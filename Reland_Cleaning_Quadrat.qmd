@@ -4,13 +4,13 @@ format: html
 editor: visual
 ---
 
-## Relandscaping Data Cleaning: FILL IN YOUR VARIABLE HERE
+## Relandscaping Data Cleaning: Quadrat
 
 Winter 2024 - MCRS Advanced Quantitative Methods Class Project
 
 Team #: 2
 
-Team Members:
+Team Members: Darien Casimiro, Izzy Funes, Luke Willett, Yvonne Xie
 
 ### Load Packages
 
