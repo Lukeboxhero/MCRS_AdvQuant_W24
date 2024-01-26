@@ -4,13 +4,13 @@ format: html
 editor: visual
 ---
 
-## Relandscaping Data Cleaning: FILL IN YOUR VARIABLE HERE
+## Relandscaping Data Cleaning: Quadrat
 
 Winter 2024 - MCRS Advanced Quantitative Methods Class Project
 
 Team #: 2
 
-Team Members:
+Team Members: Darien Casimiro, Izzy Funes, Luke Willett, Yvonne Xie
 
 ### Load Packages
 
@@ -20,6 +20,7 @@ library(tidyverse)
 library(ggplot2)
 library(readr)
 library(readxl)
+library(dplyr)
 
 ```
 
@@ -95,50 +96,81 @@ Quad_Combined <- bind_rows(Quad_Winter_19_Clean, Quad_Spring_18_Clean, QuadFall_
 
 Go through your raw data frame column by column to find and correct issues.
 
-#### Issue #1: Change column names
+#### Issue #1: Select columns
 
 ```{r}
-Quad_Combined_Issue_1 <- Quad_Combined |>
-  rename(Species_Code = `Species Code`, Percent_Cover = Cover)
+Quad_Combined_Clean<-Quad_Combined %>% select(2, 3, 4, 5, 6, 9,10)
 ```
 
-#### Issue #2: Remove unnecessary rows and columns
+#### Issue #2: Rename columns
 
 ```{r}
-Quad_Combined_Issue_2 <- Quad_Combined_Issue_1 |>
-  select(2:7,9:10) |>
-  filter(Species_Code != "six-letter code")
+colnames(Quad_Combined_Clean)
+Quad_Combined_Clean<- Quad_Combined_Clean%>% rename(Species_Code=`Species Code`)
 ```
 
-#### Issue #3: Make columns uniform
+#### **Issue #3:** Change to integers
 
 ```{r}
-Quad_Combined_Issue_3 <- Quad_Combined_Issue_2 |>
-  mutate_all(na_if, "-") |>
-  
-  mutate(Percent_Cover = str_replace(Percent_Cover, '% Cover', '')) |>
-  
-  mutate(Quad = as.numeric(Quad)) |> 
-  mutate(Block = as.numeric(Block)) |>
-  mutate(Count = as.numeric(Count)) |>
-  mutate(Percent_Cover = as.numeric(Percent_Cover))
+Quad_Combined_Clean<-Quad_Combined_Clean %>% mutate(Block = as.integer(Block), Count = as.integer(Count), Quad = as.integer(Quad))
+```
 
-Quad_Combined_Issue_3$Species_Code[Quad_Combined_Issue_3$Species_Code == "HEDHEL (eng ivy)"] <- "HEDHEL"
-Quad_Combined_Issue_3$Species_Code[Quad_Combined_Issue_3$Species_Code == "UK(01)"] <- "UNK1"
-Quad_Combined_Issue_3$Species_Code[Quad_Combined_Issue_3$Species_Code == "UK(02)"] <- "UNK2"
-Quad_Combined_Issue_3$Species_Code[Quad_Combined_Issue_3$Species_Code == "UK(03)"] <- "UNK3"
-Quad_Combined_Issue_3$Species_Code[Quad_Combined_Issue_3$Species_Code == "UK(04)"] <- "UNK4"
+#### **Issue #4: Rename treatment values and unknown species**
 
-Quad_Combined_Issue_3$Treatment[Quad_Combined_Issue_3$Treatment =="NN"]<-"NonNative"
-Quad_Combined_Issue_3$Treatment[Quad_Combined_Issue_3$Treatment =="N"]<-"Native"
-
+```{r}
+Quad_Combined_Clean[Quad_Combined_Clean=="N"] <- "Native"
+Quad_Combined_Clean[Quad_Combined_Clean=="NN"] <- "NonNative"
+Quad_Combined_Clean$Species_Code[Quad_Combined_Clean$Species_Code == "HEDHEL (eng ivy)"] <- "HEDHEL"
+Quad_Combined_Clean$Species_Code[Quad_Combined_Clean$Species_Code == "UK(01)"] <- "UNK1"
+Quad_Combined_Clean$Species_Code[Quad_Combined_Clean$Species_Code == "UK(02)"] <- "UNK2"
+Quad_Combined_Clean$Species_Code[Quad_Combined_Clean$Species_Code == "UK(03)"] <- "UNK3"
+Quad_Combined_Clean$Species_Code[Quad_Combined_Clean$Species_Code == "UK(04)"] <- "UNK4"
 
 ```
 
-#### Issue #4:
+#### Issue #5: Remove duplicate rows
 
 ```{r}
+Quad_Combined_Clean<-Quad_Combined_Clean[-c(1,85),]
+```
 
+#### Issue #6: Remove NA values
+
+```{r}
+Quad_Combined_Clean<- Quad_Combined_Clean %>% filter(Treatment == "Native" | Treatment== "NonNative" & Block >=1 & Quad >=1)
+```
+
+#### Issue #7 Remove Missing Counts
+
+```{r}
+Quad_Combined_Clean<- Quad_Combined_Clean[-c(67),]
+```
+
+#### Issue #8 Replace NA with Values in Block Column
+
+```{r}
+Quad_Combined_Clean<- Quad_Combined_Clean %>%
+  mutate(Block = if_else(is.na (Block) & Quad == "3", 2, Block)) |> 
+   mutate(Block = if_else(is.na (Block) & Quad == "4", 2, Block)) |>
+   mutate(Block = if_else(is.na (Block) & Quad == "5", 3, Block)) |>
+   mutate(Block = if_else(is.na (Block) & Quad == "6", 3, Block)) |>
+   mutate(Block = if_else(is.na (Block) & Quad == "9", 1, Block)) |>
+   mutate(Block = if_else(is.na (Block) & Quad == "10", 1, Block))
+```
+
+#### Issue# 9: Replace NA with Values in Quad
+
+```{r}
+Quad_Combined_Clean<- Quad_Combined_Clean[-c(75),]
+```
+
+#### Issue #10: Replace NA with Turf or NonTurf
+
+```{r}
+Quad_Combined_Clean<- Quad_Combined_Clean %>%
+  mutate(Turf = if_else(is.na (Turf) & Block == "1","NonTurf" , Turf)) |>
+  mutate(Turf = if_else(is.na (Turf) & Block == "3","Turf" , Turf)) |>
+ mutate(Turf = if_else(is.na (Turf) & Block == "2","Turf" , Turf))
 ```
 
 ### Save your cleaned and complete Primary data frame to .csv and .Rdata and save the file as VARIABLE_Primary.csv or similar.
