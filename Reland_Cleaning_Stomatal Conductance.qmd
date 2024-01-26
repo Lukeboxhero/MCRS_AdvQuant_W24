@@ -66,11 +66,7 @@ StomCon_Combined <- bind_rows(StomCon_Fall, StomCon_Winter_Clean)
 
 Go through your raw data frame column by column to find and correct issues.
 
-<<<<<<< HEAD
-#### Issue #1: Calculate mean measurements
-=======
 #### Issue #1: Get rid of the first row
->>>>>>> master
 
 ```{r}
 StomCon_Combined_1 <- StomCon_Combined|>
@@ -79,14 +75,11 @@ StomCon_Combined_1 <- StomCon_Combined|>
 
 #### Issue #2: Select columns
 
-<<<<<<< HEAD
-=======
 ```{r}
 StomCon_Combined_2 <- StomCon_Combined_1|>
   select(-Observers, -Notes)
 ```
 
->>>>>>> master
 etc.
 
 #### Issue #3: Change Non-Native to NonNative
@@ -125,5 +118,7 @@ StomCon_Clean <- StomCon_Combined_4 |>
 ### Save your cleaned and complete Primary data frame to .csv and .Rdata and save the file as VARIABLE_Primary.csv or similar.
 
 ```{r}
+write_csv(StomCon_Clean, "StomCon_Clean.csv")
 
+save(StomCon_Clean, file = "StomCon.Rdata")
 ```
