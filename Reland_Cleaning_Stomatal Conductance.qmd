@@ -90,7 +90,7 @@ StomCon_Combined_3 <- StomCon_Combined_2|>
    Treatment == "Non-Native" ~ "NonNative",
    is.character(Treatment) == TRUE ~ Treatment
  ))
-View(StomCon_Combined)
+#View(StomCon_Combined)
 ```
 
 #### Issue #4: Change Date and Get rid of NA data
@@ -107,18 +107,18 @@ StomCon_Combined_4 <- StomCon_Combined_3 |>
 #### Issue #5: Column names
 
 ```{r}
-StomCon_Clean <- StomCon_Combined_4 |>
+StomCon_Primary <- StomCon_Combined_4 |>
   rename(Species = "Plant Species" ) |>
   rename(Tag_Num = "Tag Number")|>
   rename(StomCon1 = "Meas. 1" , StomCon2 = "Meas. 2" , StomCon3 = "Meas. 3")
 
-  
+View(StomCon_Primary)
 ```
 
 ### Save your cleaned and complete Primary data frame to .csv and .Rdata and save the file as VARIABLE_Primary.csv or similar.
 
 ```{r}
-write_csv(StomCon_Clean, "StomCon_Clean.csv")
+write_csv(StomCon_Primary, "StomCon_Primary.csv")
 
-save(StomCon_Clean, file = "StomCon.Rdata")
+save(StomCon_Primary, file = "StomCon_Primary.Rdata")
 ```
