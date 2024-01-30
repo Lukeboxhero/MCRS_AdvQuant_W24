@@ -24,7 +24,7 @@ library(readxl)
 #### Import your Primary file from your saved .Rdata
 
 ```{r}
-load( file = 'StomCon_Primary.Rdata')
+load(file = 'StomCon_Primary.Rdata')
 ```
 
 ### Analysis
