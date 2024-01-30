@@ -4,24 +4,26 @@ format: html
 editor: visual
 ---
 
-## Relandscaping Exploratory Analysis: 
+## Relandscaping Exploratory Analysis:
 
 Winter 2024 - MCRS Advanced Quantitative Methods Class Project
 
 Team #:
 
-Team Members: Izzy Funes
+Team Members:
 
 #### Load Packages
 
 ```{r}
-
+library(tidyverse)
+library(ggplot2)
+library(vegan)
 ```
 
 #### Import your Primary file from your saved .Rdata
 
 ```{r}
-
+load("Quad_Combined_Clean.Rdata")
 ```
 
 ### Analysis
@@ -60,4 +62,34 @@ Once you have something good, show it to your teammates and you can agree to add
 
 ```{r}
 
+```
+
+#### Luke's Workspace
+
+```{r}
+Quad_Richness <- Quad_Wide |> 
+  group_by(Quad) |> 
+  count()
+
+Quad_Richness_Bar <- ggplot(Quad_Richness) +  
+  aes(x = Quad) + 
+  geom_bar() 
+
+Quad_Richness_Bar
+```
+
+```{r}
+Quad_Wide <- Quad_Combined_Clean |> 
+  select(3,4,5)
+  
+
+Quad_Wide |>
+  pivot_wider(names_from = Quad, values_from = Count, values_fill = 0)
+
+Quad_Wide
+
+
+
+
+diversity(Quad_Wide, index = "shannon")
 ```
