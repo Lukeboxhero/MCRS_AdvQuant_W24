@@ -15,13 +15,16 @@ Team Members: Izzy Funes
 #### Load Packages
 
 ```{r}
-
+library(tidyverse)
+library(ggplot2)
+library(readr)
+library(readxl)
 ```
 
 #### Import your Primary file from your saved .Rdata
 
 ```{r}
-
+load( file = 'StomCon_Primary.Rdata')
 ```
 
 ### Analysis
