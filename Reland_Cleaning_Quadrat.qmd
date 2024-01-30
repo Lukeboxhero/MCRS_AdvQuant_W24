@@ -10,7 +10,7 @@ Winter 2024 - MCRS Advanced Quantitative Methods Class Project
 
 Team #: 2
 
-Team Members: Darien Casimiro, Izzy Funes, Luke Willett, Yvonne Xie
+Team Members: Darien Casimiro, Luke, Willett, Izzy Funes, Yvonne Xie
 
 ### Load Packages
 
@@ -90,6 +90,7 @@ Bind your cleaned data frames together into one object. Clean up any remaining c
 
 ```{r}
 Quad_Combined <- bind_rows(Quad_Winter_19_Clean, Quad_Spring_18_Clean, QuadFall_18_Clean)
+View(Quad_Combined)
 ```
 
 ### Cleaning

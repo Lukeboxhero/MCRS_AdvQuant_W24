@@ -1,0 +1,436 @@
+---
+title: "Loma_Ridge_Analysis_FINAL"
+format: html
+editor: visual
+---
+
+# Loma Ridge Final Analysis
+
+Izzy Funes
+
+December 12th, 2023
+
+## Introduction
+
+At the beginning of Fall quarter 2023, the Masters of Conservation and Restoration Science Cohort went out the the Loma Ridge Global Change Experiment site on at the Irvine Ranch Conservancy to collect plant health data on *Salvia mellifera* and *Malosma laurina*. Wanted to see if both of these plants exhibited any health differences while receiving two different water exposure treatments, some of them receiving ambient water and others exposed to drought conditions. This data analysis looks at how water treatment effect plant health in *Salvia mellifera* exclusively.
+
+```{r}
+library(tidyverse)
+library(googlesheets4)
+library(readxl)
+```
+
+## Project Data Sources
+
+```{r}
+SPAD_data_raw <- read_sheet(
+  'https://docs.google.com/spreadsheets/d/1YG_zcmjW9GTsRO3F5uoHUkSOkP4dfqO1qR4GwOQJyaA/edit#gid=346809541', 
+  sheet = 3) 
+
+Shrub_data_raw <- read_sheet(
+  'https://docs.google.com/spreadsheets/d/1YG_zcmjW9GTsRO3F5uoHUkSOkP4dfqO1qR4GwOQJyaA/edit#gid=346809541', 
+  sheet = 4) 
+
+LRGCE_Blocks <- read_excel("LRGCE_ExperimentalBlocks.xlsx")
+
+Old_SPAD_raw <- read_csv(file = "SPAD_LA_DW_data.csv")
+
+```
+
+```{r}
+LRGCE_Blocks <- LRGCE_Blocks |>
+  rename(PlotNames = `Plot Names`)
+```
+
+### Shrub Data
+
+Data cleaning for the Shrub Height Data.
+
+```{r}
+Shrub_data <- Shrub_data_raw |> 
+  
+  filter(Team != "Mickey, Minnie") |> 
+
+  mutate(EstimatedHeight = case_when(
+    str_detect(Shrub_Height_cm, ">") == TRUE ~ "Estimated")
+    ) |> 
+  
+  mutate(Shrub_Height_cm = str_replace(Shrub_Height_cm, '\\>', '')) |> 
+  
+  mutate(Shrub_Height_cm = as.numeric(Shrub_Height_cm)) |> 
+  
+  mutate(Tag_Num = as.numeric(Tag_Num)) |> 
+  
+  select(Plot_Num, Tmt_Code, Tag_Num, Species, Crown_Sprouting, Shrub_Height_cm) |> 
+  
+  mutate(PlotNames = paste("S", Plot_Num, Tmt_Code, sep = "")) |> 
+  
+   left_join(LRGCE_Blocks) |> 
+  
+  separate(PlotNames, into  = c("drop", "Habitat","Num1", "Num2", "Left/Right", "Water", "Nitrogen"), sep = "") |> 
+  
+  mutate(
+    Water_Treatment = case_when(
+      Water == "R" ~ "Drought", 
+      Water == "X" ~ "Ambient"),
+    N_Treatment = case_when(
+      Nitrogen == "X" ~ "Ambient", 
+      Nitrogen == "N" ~ "Addition")
+    ) |> 
+  
+    select(Plot_Num, Tag_Num, Water_Treatment, N_Treatment, Block, Species, Crown_Sprouting, Shrub_Height_cm)
+
+  Shrub_data
+  #view(Shrub_data)
+  
+```
+
+### SPAD Data
+
+Data cleaning for chlorophyll measurement data.
+
+```{r}
+SPAD_filled_tags <- SPAD_data_raw |> filter(is.na(Tag_Num) == TRUE) |>  mutate(Tag_Num = rep(101:115, each = 5))
+
+SPAD_data <- SPAD_data_raw |> 
+  
+  filter(is.na(Tag_Num) == FALSE) |> 
+  
+  bind_rows(SPAD_filled_tags) |>   
+  
+  filter(Team != "Mickey, Minnie") |> 
+  
+  select(Plot_Num, Tmt_Code, Tag_Num, Species, Crown_Sprouting, Leaf_Num, SPAD) |> 
+
+  mutate(PlotNames = paste("S", Plot_Num, Tmt_Code, sep = "")) |> 
+ 
+  left_join(LRGCE_Blocks) |> 
+
+    separate(PlotNames, into  = c("drop", "Habitat","Num1", "Num2", "Left/Right", "Water", "Nitrogen"), sep = "") |> 
+  mutate(
+    Water_Treatment = case_when(
+      Water == "R" ~ "Drought", 
+      Water == "X" ~ "Ambient"),
+    N_Treatment = case_when(
+      Nitrogen == "X" ~ "Ambient", 
+      Nitrogen == "N" ~ "Addition")
+    )|>
+    filter(N_Treatment == "Ambient") |> 
+  
+  select(Plot_Num, Tag_Num, Water_Treatment, N_Treatment, Block, Species, Crown_Sprouting, Leaf_Num, SPAD)
+
+SPAD_data
+
+#View(SPAD_data)
+```
+
+## A) Summary Tables
+
+A few spread graphs and summary tables to get a better idea of the chlorophyll measurement distribution.
+
+```{r}
+SPAD_Histogram <- ggplot(SPAD_data) +
+  aes(x = SPAD) + 
+  geom_histogram(color = "black", fill = 'forestgreen')
+SPAD_Histogram
+```
+
+```{r}
+SPADAverage_SALMEL <- SPAD_data |>
+  group_by(Tag_Num, Species, Plot_Num, Water_Treatment) |>
+  mutate(SPAD_avg = mean(SPAD)) |>
+  #Line above was added to this chunk from SPADAverage chunk
+  summarize(chlorophyll_mean = round(mean(SPAD), digits = 2)) |>
+  filter(Species == "SALMEL")
+
+SPADAverage_SALMEL
+
+quartiles<- quantile(SPADAverage_SALMEL$chlorophyll_mean, probs=c(.25, .75) )
+IQR <- IQR(SPADAverage_SALMEL$chlorophyll_mean)
+
+Lower <- quartiles[1] - 1.5*IQR
+Upper <-quartiles[2] + 1.5*IQR
+
+SPADAverageSALMEL_no_outliers <- subset(SPADAverage_SALMEL, SPADAverage_SALMEL$chlorophyll_mean > Lower & SPADAverage_SALMEL$chlorophyll_mean <Upper)
+
+
+SPADAverageSALMEL_no_outliers
+ 
+```
+
+```{r}
+SPAD_SALMEL_Histogram <- ggplot(SPADAverageSALMEL_no_outliers) +
+  aes(x = chlorophyll_mean) + 
+  geom_histogram(color = "black", fill = 'forestgreen', binwidth = 0.6)
+SPAD_SALMEL_Histogram
+```
+
+```{r}
+SPADSummary_SALMEL <- SPADAverageSALMEL_no_outliers |>
+  group_by(Water_Treatment) |>
+  summarize(mean_Chlorophyll = round(mean(chlorophyll_mean), digits = 1),
+            count_Chlorophyll = n(),
+            SD = round(sd(chlorophyll_mean) , digits = 1),
+            SE = round(sd(chlorophyll_mean)/sqrt( n() ), digits = 1 ))
+
+SPADSummary_SALMEL
+
+#View(SPADSummary)
+
+knitr::kable(SPADSummary_SALMEL)
+
+
+```
+
+This summary table above shows us the means for average chlorophyll measurements for ambient and drought treated *Salvia mellifera.* Interesting how the drought treatment mean is slightly higher than the ambient mean!
+
+## B) ANOVA Analysis
+
+Is there a difference in mean chlorophyll levels in SALMEL that are living in ambient water treatment versus drought water treatment?
+
+H0:  There is no significant difference in mean chlorophyll level for *S. mellifera* between the two treatments.
+
+HA: There is a significant difference in mean chlorophyll level for *S. mellifera* between the two treatments.
+
+```{r}
+
+#model <- lmerTest::lmer(SPAD_mean ~ Water_Treatment + (1|Block), data = SPADAverageSALMEL_no_outliers) 
+#LOAD PACKAGE FIRST
+#summary(SPADAverageSALMEL_no_outliers.lmer)
+#No blocking for this analysis because height is not included
+
+model <- lm(chlorophyll_mean ~ Water_Treatment, data = SPADAverageSALMEL_no_outliers)
+
+
+plot(model, which = 1)
+
+ 
+var.test(chlorophyll_mean ~ Water_Treatment, data = SPADAverageSALMEL_no_outliers)
+# NOTE: if your sample fails this test, have no fear! Welch's t-test (the default that R uses) is okay to use with unequal
+```
+
+```{r}
+summary(model)
+```
+
+```{r}
+slope <- coef(model)[2]
+slope
+
+int <- coef(model)[1]
+int
+
+Rsq <- summary(model)$r.squared
+Rsq
+```
+
+y=0.0004x + 43.93
+
+R-squared = 0.41
+
+```{r}
+shapiro.test(model$residuals)
+
+
+plot(model, which = 2)
+```
+
+Data is normally distributed when we remove our initial outliers!
+
+### Welch's Two-Sample T-test
+
+```{r}
+t.test(chlorophyll_mean ~ Water_Treatment, data = SPADAverageSALMEL_no_outliers)
+```
+
+```{r}
+ggplot(SPADAverageSALMEL_no_outliers) +
+  aes(x = Water_Treatment, y = chlorophyll_mean, fill = Water_Treatment) +
+  geom_dotplot(binaxis = "y", stackdir = "center") + labs(x = "Water Treatment", y = "Plant Chlorophyll Measurement") 
+  #geom_errorbar(aes(ymin = mean_SPAD - SE_SPAD,
+                    #ymax = mean_SPAD + SE_SPAD),
+                    #position = position_dodge(0.9),
+                         #width = 0.1) + labs(x = "Water Treatment", y = "Chlorophyll") +
+  #geom_jitter(data = SPADAverageSALMEL_no_outliers, aes(x = Water_Treatment, y = SPAD_mean ))
+```
+
+```{r}
+ggplot(SPADSummary_SALMEL)+
+  aes(x = Water_Treatment, y = mean_Chlorophyll, color = Water_Treatment) + 
+  labs(x = "Water Treatment", y = "Chlorophyll Level (µg cm - 2)") +
+  #scale_color_discrete(name = "Water Treatment") +
+  scale_color_manual(values = c("deepskyblue3", "peru"), name = "Water Treatment") +
+  geom_point(shape = 'triangle', cex = 4) +
+  geom_errorbar(aes(ymin = mean_Chlorophyll - SE,
+                   ymax = mean_Chlorophyll + SE),
+                    position = position_dodge(0.9),
+                         width = 0.1) +
+geom_jitter(data = SPADAverageSALMEL_no_outliers, aes(x = Water_Treatment, y = chlorophyll_mean))
+```
+
+This plot compares the distribution of chlorophyll levels between the two treatments, as well as the comparison of the means and standard error for mean chlorophyll level between the two treatments. The ambient mean and distribution is depicted in blue while the drought mean and distribution is depicted in tan. As we can see, the drought mean is slightly higher than the ambient mean. The drought treatment does have a wider distribution however, with values on either end of the extremes. Chlorophyll data for the ambient plot is more centralized around 40-47 ug cm -2. Since the error bars between the two treatments overlap, we can tell that there is no significant difference in mean chlorophyll levels between the ambient and drought treatments.
+
+## 5C) Linear Mixed Effect Model
+
+Does Plant chlorophyll and water treatment effect plant height in SALMEL?
+
+-two continuous variables
+
+H0: Chlorophyll and water treatment do not affect plant height in SALMEL
+
+Ha: Chlorophyll and water treatment do affect plant height in SALMEL
+
+```{r}
+SPADAverage <- SPAD_data |>
+  group_by(Tag_Num, Species, Plot_Num, Water_Treatment) |>
+   mutate(chlorophyll_avg = mean(SPAD)) |>
+  summarize(chlorophyll_mean = round(mean(SPAD), digits = 2)) 
+
+ 
+SPADAverage
+
+Combined_SPADavg_Heights <- SPADAverage |> 
+  inner_join(Shrub_data, multiple = "all") |>
+  filter(N_Treatment != "Addition")
+
+Combined_SPADavg_Heights
+  
+```
+
+```{r}
+Combined_SPADavg_Heights_SALMEL <- Combined_SPADavg_Heights |>
+  select(Tag_Num, Species, Plot_Num, Water_Treatment, chlorophyll_mean, Shrub_Height_cm, Block) |>
+  filter(Species == "SALMEL")
+Combined_SPADavg_Heights_SALMEL
+
+quartiles<- quantile(Combined_SPADavg_Heights_SALMEL$chlorophyll_mean, probs=c(.25, .75) )
+IQR <- IQR(Combined_SPADavg_Heights_SALMEL$chlorophyll_mean)
+
+Lower <- quartiles[1] - 1.5*IQR
+Upper <-quartiles[2] + 1.5*IQR
+
+CombinedSALMEL_no_outliers <- subset(Combined_SPADavg_Heights_SALMEL, Combined_SPADavg_Heights_SALMEL$chlorophyll_mean > Lower & Combined_SPADavg_Heights_SALMEL$chlorophyll_mean <Upper)
+
+
+CombinedSALMEL_no_outliers
+
+Summary <- CombinedSALMEL_no_outliers |>
+  group_by(Water_Treatment) |>
+  summarize(mean_height = round(mean(Shrub_Height_cm), digits = 1),
+            count = n(),
+            SD_height = round(sd(Shrub_Height_cm) , digits = 1),
+            SE_height = round(sd(Shrub_Height_cm)/sqrt( n() ), digits = 1 ))
+
+Summary
+knitr::kable(Summary)
+```
+
+### Assumptions/Normality Test
+
+Lets test our assumptions -
+
+Hmmmm, maybe a Shapiro-Wilk Test will work best
+
+Are one or both variables normal?
+
+H0: Both variables are normally distributed
+
+HA: Variables are NOT normally distributed
+
+```{r}
+shapiro.test(CombinedSALMEL_no_outliers$Shrub_Height_cm)
+shapiro.test(CombinedSALMEL_no_outliers$chlorophyll_mean)
+```
+
+Normally Distributed!
+
+### Statistical Tests
+
+Mixed Effects Linear Model
+
+In this model, we are testing if chlorophyll level and water treatment as combined fixed effects have a relationship with shrub height. I selected block as a random effect because individual plant measurement were selected at random within each block. If we went back to the site to collect measurements a second time, there is no guarantee we would pick the same plants due to the block assignment.
+
+```{r}
+mixedtreatment.lmer <- 
+  lmerTest::lmer(Shrub_Height_cm ~ chlorophyll_mean * Water_Treatment + (1|Block), data = CombinedSALMEL_no_outliers) 
+#LOAD PACKAGE FIRST
+summary(mixedtreatment.lmer)
+
+```
+
+Looks like there isn't a significant relationship between shrub height and chlorophyll with water treatment as combined effects.
+
+Maybe they will effect shrub height independently!
+
+```{r}
+CombinedSALMEL_no_outliers.lmer <- 
+  lmerTest::lmer(Shrub_Height_cm ~ chlorophyll_mean + Water_Treatment + (1|Block), data = CombinedSALMEL_no_outliers) 
+#LOAD PACKAGE FIRST
+summary(CombinedSALMEL_no_outliers.lmer)
+
+library(cAIC4)
+
+cAIC(CombinedSALMEL_no_outliers.lmer)
+
+plot(CombinedSALMEL_no_outliers.lmer)
+```
+
+(chlorophyll_mean): t-value = 2.313, P-value = 0.038, df = 13.153
+
+(Water_TreatmentDrought): t=3.381, P=value = 0.0048, df = 14.02
+
+Looks like there is a significant relationship between the two predictor variables and shrub height!! Lets graph it to get a better idea of the relationship.
+
+```{r}
+#shapiro.test(CombinedSALMEL_no_outliers.lmer$residuals)
+qqnorm(residuals(CombinedSALMEL_no_outliers.lmer))
+#plot(model = CombinedSALMEL_no_outliers.lmer, which = 2)
+```
+
+\
+Residuals are normally distributed!
+
+### sjPlot
+
+```{r}
+library(sjPlot)
+plot_model(CombinedSALMEL_no_outliers.lmer) + geom_hline(aes(yintercept = 0), linetype = "dotted")
+```
+
+*If the fixed effect estimate is greater than 0, and the standard error bars don't overlap zero, you can be confident that there is a positive relationship for that variable. (and vice versa for a negative relationship).*
+
+--Dr. Amy Henry, PhD, UCI Irvine
+
+There seems to be a very very small positive relationship between shrub height and chlorophyll level. This means that plants with greater chlorophyll levels were slightly taller by 2-5cm (makes sense!) What's very unusual though is water treatment had an effect on shrub height, but not in a way we would expect. Water treatment had a strong positive relationship with shrub height, with the drought treatment being the strong influencer on height. *S. mellifera* growing in the drought treatment were on average 40 cm taller than those in the ambient treatment plots. This could be due to the larger range of heights we saw back in our ANOVA plot!
+
+### Plot Results
+
+```{r}
+Rsq <- round(Rsq, 2)
+slope <-round(slope, 2)
+int <- round(slope, 2)
+
+
+ggplot(CombinedSALMEL_no_outliers) + 
+  aes(x = chlorophyll_mean, y = Shrub_Height_cm, 
+      color = Water_Treatment,
+      shape = Water_Treatment) +
+  geom_point() + 
+  #scale_color_discrete(name = "Water Treatment") +
+  scale_color_manual(values = c("deepskyblue3", "peru"), name = "Water Treatment") +
+  scale_shape_discrete(name = "Water Treatment") +
+geom_smooth(method = "lm", se = FALSE) + labs(x = "Chlorophyll Level (µg cm - 2)", y = "Shrub Height(cm)") 
+```
+
+This graph gives us a better visual of our two predictor variable influence shrub height (y axis). As you can see, the drought treatment is slightly higher on the graphing, showing that on average *S. mellifera* was taller in this treatment. Also, the slopes of the lines are positive, meaning that as chlorophyll level increases, so does shrub height. Since our lines have relatively the same slopes however, this indicates there's no interaction between water treatment and chlorophyll level, which we found in our first LMER!
+
+```{r}
+citation("tidyverse")
+citation("readxl")
+citation("googlesheets4")
+citation("lmerTest")
+
+
+
+R.version.string
+```
