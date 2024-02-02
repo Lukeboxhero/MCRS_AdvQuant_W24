@@ -78,18 +78,90 @@ Quad_Richness <- Quad_Wide |>
 
 Quad_Richness_Bar <- ggplot(Quad_Richness) +  
   aes(x = Treatment, y = Count, fill = Treatment) + 
-  geom_col()
+  scale_fill_manual(values = c("darkblue", "limegreen")) +
+  geom_col() +
+  labs(x = "Treatment",
+       y = "Species Richness",
+       title = "Species Richness of Native vs. Non-Native Plots")
 
 Quad_Richness_Bar
+
+
+
+
+
+
+
+
+
 ```
 
 ```{r}
 Quad_Wide_1 <- Quad_Wide |>
   pivot_wider(names_from = Species_Code, values_from = Count, values_fill = 0)
-
 Quad_Wide_1
 
 Shan <- diversity(Quad_Wide_1[,5:ncol(Quad_Wide_1)], index = "shannon")
 Quad_Wide_1_Summary <- Quad_Wide_1[1:3] |>
 bind_cols(Shan)
+Quad_Wide_1_Summary
+
+Quad_Shan <- aggregate(x = Quad_Wide_1_Summary$...4, by = list(Quad_Wide_1_Summary$Treatment), FUN = mean) |>
+  rename(Shannon_Diversity = x)
+
+Quad_Shan
+
+Quad_Shan_Bar <- ggplot(Quad_Shan) +  
+  aes(x = Group.1, y = Shannon_Diversity, fill = Group.1) + 
+  scale_fill_manual(values = c("darkblue", "limegreen")) +
+  geom_col() +
+  labs(x = "Treatment",
+       y = "Shannon Diversity",
+       title = "Shannon Diversity of Native vs. Non-Native Plots")
+Quad_Shan_Bar
+```
+
+```{r}
+Quad_Wide_1 <- Quad_Wide |>
+  pivot_wider(names_from = Species_Code, values_from = Count, values_fill = 0)
+Quad_Wide_1
+
+Shan <- diversity(Quad_Wide_1[,5:ncol(Quad_Wide_1)], index = "shannon")
+Quad_Wide_1_Summary <- Quad_Wide_1[1:3] |>
+bind_cols(Shan)
+Quad_Wide_1_Summary
+
+Quad_Shan <- aggregate(x = Quad_Wide_1_Summary$...4, by = list(Quad_Wide_1_Summary$Treatment), FUN = mean) |>
+  rename(Shannon_Diversity = x)
+
+Quad_Shan
+
+Quad_Shan_Bar <- ggplot(Quad_Shan) +  
+  aes(x = Group.1, y = Shannon_Diversity, fill = Shannon_Diversity) + 
+  geom_col()
+Quad_Shan_Bar
+
+
+Quad_Wide_2 <-Quad_Wide |>
+  filter(Species_Code != "ACHTOM") |>
+  filter(Species_Code != "CYNDAC") |>
+  filter(Species_Code != "OXACOR") |>
+  filter(Species_Code != "DAUCAR") |>
+  filter(Species_Code != "EUPALB") |>
+  filter(Species_Code != "ROSOFF") |>
+  filter(Species_Code != "RHAIND") |>
+  filter(Species_Code != "LAVGIN") |>
+  filter(Species_Code != "PERATR") |>
+  filter(Species_Code != "RUEBRI") |>
+  filter(Species_Code != "CISPUR") |>
+  filter(Species_Code != "FESMAI") |>
+  filter(Species_Code != "PENSPAL")
+
+  
+
+, "CYNDAC", "DAUCAR", "EUPALB", "ROSOFF", "RHAIND", "LAVGIN", "PERATR", "RUEBRI", "CISPUR", "FESMAI", "PENSPAL"))
+
+
+
+
 ```
